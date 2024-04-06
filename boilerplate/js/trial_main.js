@@ -6,8 +6,14 @@ var cityPop = [
     { city: 'Superior', population: 27244 }
 ];
 
+// Create SVG container
+var svg = d3.select("body")
+    .append("svg")
+    .attr("width", 800)
+    .attr("height", 600);
+
 // Function to create circles representing city populations
-var circles = container.selectAll(".circles")
+var circles = svg.selectAll(".circles")
     .data(cityPop)
     .enter()
     .append("circle")
@@ -17,39 +23,34 @@ var circles = container.selectAll(".circles")
     .attr("cx", (d, i) => 90 + (i * 180))
     .attr("cy", d => 450 - (d.population * 0.0005));
 
-// Function to add a new column 'City Size' to the table based on population
-function addColumns(cityPop) {
-    document.querySelectorAll("tr").forEach((row, i) => {
-        if (i === 0) {
-            row.insertAdjacentHTML('beforeend', '<th>City Size</th>');
-        } else {
-            var citySize = '';
-            if (cityPop[i - 1].population < 100000) citySize = 'Small';
-            else if (cityPop[i - 1].population < 500000) citySize = 'Medium';
-            else citySize = 'Large';
-            row.insertAdjacentHTML('beforeend', `<td>${citySize}</td>`);
-        }
-    });
-}
-
-// Function to handle mouseover and click events on the table
-function addEvents() {
-    document.querySelector("table").addEventListener("mouseover", function () {
-        var color = `rgb(${Math.round(Math.random() * 255)},${Math.round(Math.random() * 255)},${Math.round(Math.random() * 255)})`;
-        document.querySelector("table").style.backgroundColor = color;
+// Function to add labels to circles
+var labels = svg.selectAll(".labels")
+    .data(cityPop)
+    .enter()
+    .append("text")
+    .attr("class", "labels")
+    .attr("text-anchor", "left")
+    .attr("y", function(d){
+        return 450 - (d.population * 0.0005) + 5; // vertical position centered on each circle
     });
 
-    function clickme() {
-        alert('Hey, you clicked me!');
-    }
+// First line of label
+var nameLine = labels.append("tspan")
+    .attr("class", "nameLine")
+    .attr("x", function(d, i){
+        return 90 + (i * 180) + Math.sqrt(d.population * 0.01 / Math.PI) + 5; // horizontal position to the right of each circle
+    })
+    .text(function(d){
+        return d.city;
+    });
 
-    document.querySelector("table").addEventListener("click", clickme);
-}
-
-// Function to initialize the changes to the table
-function initialize() {
-    addColumns(cityPop);
-    addEvents();
-}
-
-document.addEventListener('DOMContentLoaded', initialize); // Call the initialize function when the DOM content is loaded
+// Second line of label
+var popLine = labels.append("tspan")
+    .attr("class", "popLine")
+    .attr("x", function(d, i){
+        return 90 + (i * 180) + Math.sqrt(d.population * 0.01 / Math.PI) + 5; // horizontal position to the right of each circle
+    })
+    .attr("dy", 15) // vertical offset from the first line
+    .text(function(d){
+        return "Pop. " + d.population;
+    });
